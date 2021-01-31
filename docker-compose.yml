@@ -1,0 +1,39 @@
+version: '3'
+services:
+  admindb:
+    image: postgres:13.1-alpine
+    container_name: admin-db
+    environment:
+      POSTGRES_PASSWORD: 'admindb'
+      POSTGRES_USER: 'adminServer'
+      POSTGRES_DB: 'dbadmin_server'
+    volumes:
+      - ./docker/db:/var/lib/postgres
+    ports:
+      - 5432:5432
+    networks:
+      - gateway_net
+
+  api:
+    build:
+      context: ./code/service/docker
+      dockerfile: Dockerfile
+    container_name: admin-api
+    restart: unless-stopped
+    tty: true
+    environment:
+      SERVICE_NAME: app
+      SERVICE_TAGS: dev
+    working_dir: /var/www
+    ports:
+      - "9000:80"
+    volumes:
+      - ./code/service:/var/www
+    networks:
+      - gateway_net
+    depends_on:
+      - admindb
+
+networks:
+  gateway_net:
+    external: true
